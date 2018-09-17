@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/miguelruizdev/dummy-project:{{.VERSION}}"
+  artifacts:
+  - imageName: changeme
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/miguelruizdev/dummy-project:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: dummy-project
+        chartPath: charts/dummy-project
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/miguelruizdev/dummy-project"
+          image.tag: "{{.DIGEST_HEX}}"
